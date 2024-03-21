@@ -9,25 +9,28 @@ import { Server } from 'socket.io'
 
 const app = express()
 
+// dotenv config for .env file retrieval
 import dotenv from "dotenv";
 dotenv.config();
 
+// basic middleware
 app.use(morgan("dev"));
 app.use(express.urlencoded({ extended: false }));
 app.use(express.json());
+app.use(express.static("src"));
 app.use(cors());
 
+// express-session middleware
 const sessionMiddleware = session({
   secret: process.env.VITE_EXPRESS_SESSION_SECRET,
   saveUninitialized: false,
   resave: false
 })
-
 app.use(sessionMiddleware);
 
-app.use(express.static("src"));
-
+// create http server for sockets
 const httpServer = http.createServer(app)
+// Create socket.io server
 const io = new Server(httpServer, {
   cors: {
     origin: "http://localhost:9987",

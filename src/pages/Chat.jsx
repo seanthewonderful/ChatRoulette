@@ -1,22 +1,12 @@
 import { useState, useEffect } from 'react'
 import io from'socket.io-client'
+import ChatRoom from '../components/ChatRoom'
 
 const socket = io('http://localhost:9987')
 
 function Chat() {
 
   const [room, setRoom] = useState({ roomName: "", password: "", joined: false})
-  const [message, setMessage] = useState("")
-  const [messages, setMessages] = useState([])
-
-  const messageThread = messages.map((message, index) => {
-    return (
-      <div key={index}>
-        <span>{message.username}: </span>
-        <span>{message.message}</span>
-      </div>
-    )
-  })
 
   const createRoom = async (e) => {
     e.preventDefault()
@@ -34,12 +24,6 @@ function Chat() {
     }
   }
 
-  const sendMessage = async (e) => {
-    e.preventDefault()
-    socket.emit('send_message', { message, room, username: 'User' })
-    setMessage("")
-  }
-
   useEffect(() => {
     // Handler for when a room is created
     const handleRoomCreated = (roomName) => {
@@ -51,18 +35,8 @@ function Chat() {
       setRoom({...room, joined: true, roomName});
     };
     
-    const handleNewMessage = (data) => {
-      setMessages(prevMessages => [data, ...prevMessages]);
-    };
-    
     socket.on('room_created', handleRoomCreated);
     socket.on('room_joined', handleRoomJoined);
-    socket.on('new_message', handleNewMessage);
-  
-    // Clean-up function
-    return () => {
-      socket.off('new_message', handleNewMessage);
-    };
   }, [])
 
   return (
@@ -115,28 +89,7 @@ function Chat() {
 
         </div>
       ) : (
-        <div id='chat-container'>
-
-          <form 
-            id='send-message-form'
-            onSubmit={sendMessage}
-            >
-            <input 
-              type="text" 
-              name="message" 
-              placeholder="Message..." 
-              value={message}
-              onChange={e => setMessage(e.target.value)}
-              />
-            <input type="submit" value="Send" />
-          </form>
-
-          <section id='thread'>
-            <h4>Welcome to {room.roomName}</h4>
-            {messageThread}
-          </section>
-
-        </div>
+        <ChatRoom socket={socket} room={room} />
       )
     }
       
