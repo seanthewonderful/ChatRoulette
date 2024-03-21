@@ -39,17 +39,38 @@ io.engine.use(sessionMiddleware)
 
 ViteExpress.config({ printViteDevServerHost: true})
 
+const rooms = {}
+
 io.on('connection', (socket) => {
   console.log('a user connected, socket id:', socket.id)
 
-  socket.on('join_room', (data) => {
-    console.log(data)
-    socket.join(data.room)
-  })
+  socket.on('create_room', ({ roomName, password }) => {
+    if (rooms[roomName]) {
+      socket.emit('room_creation_error', 'Room already exists.');
+      return;
+    }
+    rooms[roomName] = password;
+    socket.join(roomName);
+    console.log("rooms: ", rooms)
+    socket.emit('room_created', roomName);
+  });
+
+  socket.on('join_room', ({ roomName, password }) => {
+    if (!rooms[roomName]) {
+      socket.emit('room_join_error', 'Room does not exist.');
+      return;
+    }
+    if (rooms[roomName] !== password) {
+      socket.emit('room_join_error', 'Incorrect password.');
+      return;
+    }
+    socket.join(roomName);
+    socket.emit('room_joined', roomName);
+  });
 
   socket.on('send_message', (data) => {
     console.log(data)
-    io.to(data.room).emit('new_message', data)
+    io.to(data.room.roomName).emit('new_message', data)
   })
 })
 
