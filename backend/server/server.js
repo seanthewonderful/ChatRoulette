@@ -47,15 +47,20 @@ const rooms = {}
 io.on('connection', (socket) => {
   console.log('a user connected, socket id:', socket.id)
 
+  socket.on('request_rooms', () => {
+    io.emit('list_rooms', Object.entries(rooms))
+  })
+
   socket.on('create_room', ({ roomName, password }) => {
     if (rooms[roomName]) {
-      socket.emit('room_creation_error', 'Room already exists.');
+      socket.emit('room_create_error', 'Room already exists.');
       return;
     }
     rooms[roomName] = password;
     socket.join(roomName);
     console.log("rooms: ", rooms)
     socket.emit('room_created', roomName);
+    io.emit('list_rooms', Object.entries(rooms))
   });
 
   socket.on('join_room', ({ roomName, password }) => {
@@ -80,6 +85,15 @@ io.on('connection', (socket) => {
 io.engine.on('connection_error', (err) => {
   console.log(err)
 })
+
+import userHandlers from './controllers/userController.js'
+const { register, login, logout, sessionCheck } = userHandlers
+
+app.get('/api/session-check', sessionCheck)
+app.post('/api/register', register)
+app.post('/api/login', login)
+app.post('/api/logout', logout)
+
 
 httpServer.listen(9987, () => console.log('Chat here - http://localhost:9987'))
 

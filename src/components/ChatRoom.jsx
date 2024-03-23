@@ -33,6 +33,7 @@ function ChatRoom({ socket, room }) {
       socket.off('new_message', handleNewMessage);
     };
   }, [])
+  
   return (
     <div id='chat-container'>
 

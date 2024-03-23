@@ -7,10 +7,19 @@ const socket = io('http://localhost:9987')
 function Chat() {
 
   const [room, setRoom] = useState({ roomName: "", password: "", joined: false})
+  const [allRooms, setAllRooms] = useState([])
+  const [selectedRoom, setSelectedRoom] = useState("")
+
+  console.log(allRooms)
+
+  const roomList = allRooms.map((room, idx) => (
+    <li key={idx}>
+      {room[0]}, {room[1]}
+    </li>
+  ))
 
   const createRoom = async (e) => {
     e.preventDefault()
-    console.log("allo")
     socket.emit('create_room', { 
       roomName: room.roomName, 
       password: room.password 
@@ -25,18 +34,39 @@ function Chat() {
   }
 
   useEffect(() => {
-    // Handler for when a room is created
+    // Request all rooms
+    socket.emit('request_rooms')
+    
+    // Handler for receiving all rooms
+    const listRooms = (rooms) => {
+      setAllRooms(rooms)
+    }
+    
+    // Handler for creating a room
     const handleRoomCreated = (roomName) => {
       setRoom({...room, joined: true, roomName});
     };
-
-    // Handler for when a room is joined
+    const handleRoomCreateError = (data) => {
+      alert(data)
+    }
+    
+    // Handler for joining a room
     const handleRoomJoined = (roomName) => {
       setRoom({...room, joined: true, roomName});
     };
+    const handleRoomJoinError = (data) => {
+      alert(data)
+    }
     
+    socket.on('list_rooms', listRooms)
     socket.on('room_created', handleRoomCreated);
+    socket.on('room_create_error', handleRoomCreateError)
     socket.on('room_joined', handleRoomJoined);
+    socket.on('room_join_error', handleRoomJoinError)
+
+    return () => {
+      socket.off('list_rooms')
+    }
   }, [])
 
   return (
@@ -86,6 +116,10 @@ function Chat() {
                 />
               <input type="submit" value="Join Room" />
           </form>
+
+          <ul>
+            {roomList}
+          </ul>
 
         </div>
       ) : (
