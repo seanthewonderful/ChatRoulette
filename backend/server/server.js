@@ -63,6 +63,8 @@ io.on('connection', (socket) => {
     io.emit('list_rooms', Object.entries(rooms))
   });
 
+  
+
   socket.on('join_room', ({ roomName, password }) => {
     if (!rooms[roomName]) {
       socket.emit('room_join_error', 'Room does not exist.');
@@ -75,6 +77,11 @@ io.on('connection', (socket) => {
     socket.join(roomName);
     socket.emit('room_joined', roomName);
   });
+
+  socket.on('leave_room', ({ roomName }) => {
+    socket.leave(roomName)
+    socket.emit('left_room', 'You left the room.')
+  })
 
   socket.on('send_message', (data) => {
     console.log(data)

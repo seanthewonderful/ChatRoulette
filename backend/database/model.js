@@ -103,6 +103,11 @@ Room.init(
       type: DataTypes.STRING,
       allowNull: false,
     },
+    active: {
+      type: DataTypes.BOOLEAN,
+      defaultValue: true,
+      allowNull: false
+    },
     createdAt: {
       type: DataTypes.DATE,
       defaultValue: DataTypes.NOW,
@@ -114,11 +119,11 @@ Room.init(
   }
 )
 
-User.hasMany(Message, { foreignKey: "userId", as: "messages" });
-Message.belongsTo(User, { foreignKey: "userId", as: "senderId" });
+User.hasMany(Message, { foreignKey: "senderId" });
+Message.belongsTo(User, { foreignKey: "senderId" } );
 
-User.hasMany(Room, { foreignKey: "userId", as: "rooms" });
-Room.belongsTo(User, { foreignKey: "userId", as: "hostId" });
+User.hasMany(Room, { foreignKey: "hostId" });
+Room.belongsTo(User, { foreignKey: "hostId" });
 
-Room.hasMany(Message, { foreignKey: "roomId", as: "messages" });
+Room.hasMany(Message, { foreignKey: "roomId" });
 Message.belongsTo(Room, { foreignKey: "roomId" });

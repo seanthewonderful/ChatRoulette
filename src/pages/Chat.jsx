@@ -1,20 +1,46 @@
 import { useState, useEffect } from 'react'
 import io from'socket.io-client'
 import ChatRoom from '../components/ChatRoom'
+import JoinRoomModal from '../components/JoinRoomModal'
 
 const socket = io('http://localhost:9987')
 
 function Chat() {
 
-  const [room, setRoom] = useState({ roomName: "", password: "", joined: false})
+  const [room, setRoom] = useState({ 
+    roomName: "", 
+    password: "", 
+    joined: false
+  })
   const [allRooms, setAllRooms] = useState([])
-  const [selectedRoom, setSelectedRoom] = useState("")
+  const [roomSelected, setRoomSelected] = useState(false)
 
-  console.log(allRooms)
+  const openJoinModal = (listRoomName) => {
+    setRoom({ 
+      ...room, 
+      roomName: listRoomName 
+    })
+    setRoomSelected(true)
+  }
 
-  const roomList = allRooms.map((room, idx) => (
+  const closeJoinModal = () => {
+    setRoom({ 
+      roomName: "", 
+      password: "", 
+      joined: false
+    })
+    setRoomSelected(false)
+  }
+
+  const roomList = allRooms.map((listRoom, idx) => (
     <li key={idx}>
-      {room[0]}, {room[1]}
+      {listRoom[0]}{"  "}
+      <button
+        id='join-room-btn'
+        onClick={() => openJoinModal(listRoom[0])}
+        >
+          Join Room
+      </button>
     </li>
   ))
 
@@ -96,26 +122,13 @@ function Chat() {
               <input type="submit" value="Create Room" />
           </form>
 
-          <form 
-            id='join-room-form'
-            onSubmit={joinRoom}
-            >
-              <input
-                type='text'
-                name='room-name'
-                placeholder='Room Name'
-                value={room.roomName}
-                onChange={e => setRoom({...room, roomName: e.target.value})}
-                />
-              <input
-                type="text"
-                name="room"
-                placeholder="Enter Room Code..."
-                value={room.password}
-                onChange={e => setRoom({ ...room, password: e.target.value})}
-                />
-              <input type="submit" value="Join Room" />
-          </form>
+          {roomSelected && 
+            <JoinRoomModal 
+              room={room}
+              setRoom={setRoom}
+              closeJoinModal={closeJoinModal}
+              />
+          }
 
           <ul>
             {roomList}
@@ -123,7 +136,11 @@ function Chat() {
 
         </div>
       ) : (
-        <ChatRoom socket={socket} room={room} />
+        <ChatRoom 
+          socket={socket} 
+          room={room} 
+          setRoom={setRoom}
+          />
       )
     }
       
