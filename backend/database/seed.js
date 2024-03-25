@@ -2,8 +2,8 @@ import { db, User, Room, Message } from "./model.js";
 
 await db.sync({ force: true });
 
-const aaa = await User.create({ username: "aaa", password: "asdf" })
-const bbb = await User.create({ username: "bbb", password: "asdf" })
+const aaa = await User.create({ username: "a", password: "asdf" })
+const bbb = await User.create({ username: "b", password: "asdf" })
 
 const roomA = await aaa.createRoom({ roomName: "roomA" })
 const roomB = await bbb.createRoom({ roomName: "roomB" })
