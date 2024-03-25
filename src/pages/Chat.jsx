@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import io from'socket.io-client'
 import ChatRoom from '../components/ChatRoom'
 import JoinRoomModal from '../components/JoinRoomModal'
+import CreateRoomModal from '../components/CreateRoomModal'
 
 const socket = io('http://localhost:9987')
 
@@ -14,6 +15,7 @@ function Chat() {
   })
   const [allRooms, setAllRooms] = useState([])
   const [roomSelected, setRoomSelected] = useState(false)
+  const [newRoom, setNewRoom] = useState(false)
 
   const openJoinModal = (listRoomName) => {
     setRoom({ 
@@ -32,6 +34,15 @@ function Chat() {
     setRoomSelected(false)
   }
 
+  const handleCreateRoomClick = () => {
+    setNewRoom(true)
+    setRoom({
+      roomName: "",
+      password: "",
+      joined: false
+    })
+  }
+
   const roomList = allRooms.map((listRoom, idx) => (
     <li key={idx}>
       {listRoom[0]}{"  "}
@@ -43,21 +54,6 @@ function Chat() {
       </button>
     </li>
   ))
-
-  const createRoom = async (e) => {
-    e.preventDefault()
-    socket.emit('create_room', { 
-      roomName: room.roomName, 
-      password: room.password 
-    })
-  }
-
-  const joinRoom = async (e) => {
-    e.preventDefault()
-    if (room.password !== "") {
-      socket.emit('join_room', { roomName: room.roomName, password: room.password })
-    }
-  }
 
   useEffect(() => {
     // Request all rooms
@@ -71,6 +67,7 @@ function Chat() {
     // Handler for creating a room
     const handleRoomCreated = (roomName) => {
       setRoom({...room, joined: true, roomName});
+      setNewRoom(false)
     };
     const handleRoomCreateError = (data) => {
       alert(data)
@@ -101,29 +98,24 @@ function Chat() {
       {!room.joined ? (
         <div id='join-room-container'>
 
-          <form 
-            id='create-room-form'
-            onSubmit={createRoom}
+          <button 
+            onClick={handleCreateRoomClick}
             >
-              <input
-                type='text'
-                name='room-name'
-                placeholder='Room Name'
-                value={room.roomName}
-                onChange={e => setRoom({...room, roomName: e.target.value})}
+              Create a New Chat Room
+          </button>
+
+          {newRoom && 
+            <CreateRoomModal
+              socket={socket}
+              room={room}
+              setRoom={setRoom}
+              setNewRoom={setNewRoom}
               />
-              <input 
-                type='text'
-                name='room-password'
-                placeholder='Room Password'
-                value={room.password}
-                onChange={e => setRoom({...room, password: e.target.value})}
-                />
-              <input type="submit" value="Create Room" />
-          </form>
+          }
 
           {roomSelected && 
             <JoinRoomModal 
+              socket={socket}
               room={room}
               setRoom={setRoom}
               closeJoinModal={closeJoinModal}
